@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>你是哪一種皮克敏？</title>
+  <style>
+    :root {
+      --bg: #f6f3ea;
+      --bg-2: #eef4e8;
+      --card: rgba(255, 255, 255, 0.92);
+      --card-soft: rgba(250, 252, 247, 0.96);
+      --border: rgba(117, 154, 103, 0.18);
+      --border-strong: rgba(117, 154, 103, 0.34);
+      --text: #2d3b2d;
+      --text-soft: #5d6d5c;
+      --green: #78aa72;
+      --green-dark: #4f7e4f;
+      --green-soft: #dcead5;
+      --cream: #fffaf1;
+      --gold: #d1a654;
+      --shadow: 0 18px 38px rgba(92, 120, 84, 0.11);
+      --radius: 18px;
+      --radius-lg: 28px;
+      --radius-xl: 34px;
+      --result-color: #78aa72;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 10%, rgba(145, 193, 132, 0.16) 0, transparent 18%),
+        radial-gradient(circle at 85% 18%, rgba(255, 218, 169, 0.14) 0, transparent 15%),
+        radial-gradient(circle at 18% 86%, rgba(182, 214, 244, 0.14) 0, transparent 14%),
+        linear-gradient(180deg, #f8f5ed 0%, #f3efe6 100%);
+      min-height: 100vh;
+      padding: 28px 16px 80px;
+    }
+
+    .quiz-wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .quiz-wrap::before,
+    .quiz-wrap::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(8px);
+    }
+
+    .quiz-wrap::before {
+      width: 240px;
+      height: 240px;
+      left: -90px;
+      top: 20px;
+      background: radial-gradient(circle, rgba(130, 184, 122, 0.16) 0, transparent 60%);
+    }
+
+    .quiz-wrap::after {
+      width: 260px;
+      height: 260px;
+      right: -110px;
+      bottom: 30px;
+      background: radial-gradient(circle, rgba(255, 208, 153, 0.14) 0, transparent 60%);
+    }
+
+    .screen {
+      display: none;
+      position: relative;
+      z-index: 1;
+      animation: rise 0.48s cubic-bezier(.22,.68,0,1.05) both;
+    }
+
+    .screen.active { display: block; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(20px) scale(.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 14px;
+      border-radius: 999px;
+      background: #f2f7ed;
+      border: 1px solid var(--border-strong);
+      color: var(--green-dark);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+
+    h1, h2, h3, h4 {
+      margin: 0;
+      font-family: "Noto Serif TC", serif;
+      color: #2b402a;
+    }
+
+    h1 {
+      font-size: clamp(36px, 6vw, 62px);
+      line-height: 1.07;
+      letter-spacing: -0.03em;
+    }
+
+    h2 {
+      font-size: clamp(26px, 4vw, 40px);
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+    }
+
+    .btn {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      transition: .24s ease;
+      font: inherit;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: 999px;
+      padding: 15px 24px;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--green), var(--green-dark));
+      color: #fff;
+      box-shadow: 0 14px 24px rgba(87, 128, 79, 0.22);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 30px rgba(87, 128, 79, 0.28);
+    }
+
+    .btn-ghost {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border-strong);
+    }
+
+    .btn-ghost:hover:not(:disabled) {
+      background: #f7fbf4;
+      transform: translateY(-1px);
+    }
+
+    .btn:disabled {
+      opacity: .48;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* 共用滿版媒體樣式：修正影片/圖片超出容器的根本問題 */
+    .full-bleed-video,
+    .full-bleed-media {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    /* ========== intro ========== */
+    .intro-inner {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas:
+        "left right"
+        "extra right";
+      min-height: 700px;
+    }
+
+    .intro-left {
+      grid-area: left;
+      padding: 52px 44px 28px 52px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-width: 0;
+    }
+
+    .intro-extra {
+      grid-area: extra;
+      padding: 0 44px 52px 52px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      min-width: 0;
+    }
+
+    .intro-left .badge { margin-bottom: 22px; }
+
+    .intro-left h1 { margin-bottom: 20px; }
+
+    .intro-lead {
+      font-size: 15.5px;
+      line-height: 2;
+      color: var(--text-soft);
+      margin-bottom: 0;
+    }
+
+    .intro-note {
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      border: 1px dashed rgba(120, 170, 114, .34);
+      background: #fbfdf9;
+      color: #5e6d5c;
+      font-size: 13.5px;
+      line-height: 1.9;
+      margin-bottom: 34px;
+    }
+
+    .intro-note strong {
+      color: #b98d2f;
+      font-weight: 800;
+    }
+
+    .intro-right {
+      grid-area: right;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      overflow: hidden;
+    }
+
+    .media-zone {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      border-bottom: 1px solid var(--border);
+      background:
+        radial-gradient(circle at 18% 18%, rgba(255, 224, 182, 0.18) 0, transparent 20%),
+        radial-gradient(circle at 82% 30%, rgba(141, 193, 129, 0.18) 0, transparent 18%),
+        radial-gradient(circle at 46% 84%, rgba(180, 214, 244, 0.16) 0, transparent 18%),
+        linear-gradient(180deg, rgba(255,255,255,.54), rgba(242,247,238,.92));
+    }
+
+    .media-zone::before {
+      content: "";
+      position: absolute;
+      width: 76%;
+      height: 76%;
+      border: 2px dashed rgba(121, 168, 113, .22);
+      border-radius: 50%;
+    }
+
+    /* 封面右側影片區：關鍵修正 */
+    .media-zone.intro-media-full,
+    #media-zone-intro {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 700px;
+      padding: 0;
+      overflow: hidden;
+      border-bottom: none;
+      display: block;
+    }
+
+    #media-zone-intro::before {
+      display: none;
+    }
+
+    #intro-video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    /* ========== quiz ========== */
+    .topbar {
+      padding: 20px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border);
+      background: rgba(249,252,246,.8);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .q-counter {
+      font-family: "Noto Serif TC", serif;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--green-dark);
+    }
+
+    .q-theme {
+      font-size: 12px;
+      color: #698067;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .progress-wrap {
+      height: 6px;
+      margin: 0 28px;
+      border-radius: 999px;
+      background: #e8f0e1;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #95c185, #5e9a5d);
+      transition: width .38s cubic-bezier(.22,.68,0,1.08);
+    }
+
+    .quiz-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 580px;
+    }
+
+    .quiz-left {
+      padding: 36px 34px 28px 38px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .quiz-left h2 { margin-bottom: 16px; }
+
+    .q-desc {
+      flex: 1;
+      font-size: 15px;
+      line-height: 2;
+      color: var(--text-soft);
+    }
+
+    .quiz-hint {
+      margin-top: 18px;
+      font-size: 13px;
+      color: #6f8a6b;
+      font-style: italic;
+    }
+
+    .quiz-right {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .quiz-media-zone {
+      flex: 0 0 auto;
+      width: 100%;
+      aspect-ratio: 3 / 2;
+      padding: 0;
+      overflow: hidden;
+      min-height: 0;
+      border-bottom: 1px solid var(--border);
+      background:
+        radial-gradient(circle at 18% 20%, rgba(255, 223, 183, 0.16) 0, transparent 20%),
+        radial-gradient(circle at 78% 24%, rgba(145, 193, 132, 0.14) 0, transparent 18%),
+        linear-gradient(180deg, rgba(255,255,255,.48), rgba(243,247,238,.82));
+    }
+
+    #question-media {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+      aspect-ratio: 3 / 2;
+    }
+
+    .options-panel {
+      padding: 20px 24px 28px;
+    }
+
+    .option-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .opt-btn {
+      position: relative;
+      overflow: hidden;
+      text-align: left;
+      padding: 16px 16px 16px 18px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-soft);
+      cursor: pointer;
+      transition: .22s ease;
+      min-height: 118px;
+    }
+
+    .opt-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(120,170,114,.08), rgba(255,255,255,0));
+      opacity: 0;
+      transition: opacity .22s ease;
+    }
+
+    .opt-btn:hover {
+      transform: translateY(-2px);
+      background: #fcfefb;
+      border-color: rgba(120,170,114,.34);
+      box-shadow: 0 12px 22px rgba(93, 129, 84, 0.10);
+      color: var(--text);
+    }
+
+    .opt-btn:hover::before { opacity: 1; }
+
+    .opt-btn.selected {
+      background: linear-gradient(135deg, #eef7e8, #ffffff);
+      border-color: var(--green-dark);
+      color: var(--text);
+      box-shadow: 0 12px 24px rgba(93, 129, 84, 0.14);
+    }
+
+    .opt-btn.selected::after {
+      content: "✓";
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--green-dark);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .opt-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 27px;
+      height: 27px;
+      border-radius: 50%;
+      background: #eef5ea;
+      color: var(--green-dark);
+      font-family: "Noto Serif TC", serif;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .opt-text {
+      position: relative;
+      z-index: 1;
+      display: block;
+      font-size: 13.5px;
+      line-height: 1.78;
+    }
+
+    .quiz-nav {
+      padding: 16px 28px;
+      border-top: 1px solid var(--border);
+      background: rgba(249,252,246,.82);
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ========== result ========== */
+    .result-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 440px;
+    }
+
+    .result-visual-zone {
+      position: relative;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+      padding: 0;
+      border-right: 1px solid var(--border);
+      background:
+        radial-gradient(circle at 18% 20%, rgba(255, 223, 183, 0.14) 0, transparent 18%),
+        radial-gradient(circle at 80% 30%, color-mix(in srgb, var(--result-color) 15%, white) 0, transparent 18%),
+        linear-gradient(180deg, rgba(255,255,255,.46), color-mix(in srgb, var(--result-color) 16%, white));
+      overflow: hidden;
+    }
+
+    .result-visual-zone::before,
+    .result-visual-zone::after {
+      display: none;
+    }
+
+    .result-pikmin-wrap {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+
+    .result-media-slot {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      border-radius: 22px;
+      border: none;
+      background: transparent;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .result-video-full {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      padding: 0;
+      margin: 0;
+      border: none;
+      background: transparent;
+      overflow: hidden;
+      border-radius: 0;
+      flex: 1;
+    }
+
+    #result-video {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+      background: transparent;
+    }
+
+    .result-copy {
+      padding: 36px 36px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: rgba(255,255,255,.56);
+    }
+
+    .result-copy .badge { margin-bottom: 18px; }
+
+    .result-name {
+      font-family: "Noto Serif TC", serif;
+      font-size: clamp(30px, 4vw, 48px);
+      font-weight: 900;
+      line-height: 1.06;
+      color: #2a3f29;
+      margin-bottom: 6px;
+    }
+
+    .result-type {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      color: color-mix(in srgb, var(--result-color) 72%, #425442);
+    }
+
+    .result-tagline {
+      font-family: "Noto Serif TC", serif;
+      font-size: 14px;
+      line-height: 1.8;
+      font-style: italic;
+      color: #987431;
+      background: rgba(255,250,241,.72);
+      border-left: 3px solid #d4b067;
+      padding: 12px 16px;
+      border-radius: 0 14px 14px 0;
+      margin-bottom: 18px;
+    }
+
+    .result-desc p {
+      margin: 0 0 10px;
+      font-size: 15px;
+      line-height: 1.95;
+      color: #586957;
+    }
+
+    .result-sections {
+      padding: 0 28px 36px;
+      background: rgba(251,253,249,.78);
+    }
+
+    .section-title {
+      font-family: "Noto Serif TC", serif;
+      font-size: 11px;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: #6f8b6a;
+      font-weight: 800;
+      margin-bottom: 14px;
+      padding-top: 28px;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-title:first-child {
+      padding-top: 0;
+      border-top: none;
+    }
+
+    .trait-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .trait-card,
+    .insight-card,
+    .match-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 10px 22px rgba(92, 120, 84, 0.06);
+    }
+
+    .trait-card {
+      padding: 18px;
+    }
+
+    .trait-card h4,
+    .insight-card h4,
+    .match-card h4 {
+      font-family: "Noto Serif TC", serif;
+      font-size: 12px;
+      font-weight: 800;
+      color: #637861;
+      margin-bottom: 12px;
+      letter-spacing: .04em;
+    }
+
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 11px;
+      border-radius: 999px;
+      background: #f2f7ee;
+      border: 1px solid #dde8d7;
+      font-size: 12px;
+      color: #5d6d5b;
+      font-weight: 700;
+    }
+
+    .insight-grid,
+    .match-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .insight-grid { margin-top: 24px; }
+    .match-grid { margin-top: 24px; }
+
+    .insight-card,
+    .match-card {
+      padding: 18px 20px;
+    }
+
+    .insight-card p,
+    .match-card p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.9;
+      color: #5d6c5c;
+    }
+
+    .match-name {
+      font-family: "Noto Serif TC", serif;
+      font-size: 20px;
+      font-weight: 900;
+      color: #2f452e;
+      margin-bottom: 8px;
+    }
+
+    .result-actions {
+      padding: 24px 28px;
+      border-top: 1px solid var(--border);
+      background: rgba(249,252,246,.82);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .result-actions.single-action {
+      justify-content: center;
+    }
+
+    .result-actions.single-action .btn {
+      min-width: 220px;
+    }
+
+    .match-image-slot {
+      width: 220px;
+      aspect-ratio: 1 / 1;
+      margin: 6px auto 16px;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .match-image-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+      filter: drop-shadow(0 10px 18px rgba(0,0,0,0.08));
+      -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0.88) 82%, rgba(0,0,0,0.38) 94%, rgba(0,0,0,0) 100%);
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 70%, rgba(0,0,0,0.88) 82%, rgba(0,0,0,0.38) 94%, rgba(0,0,0,0) 100%);
+    }
+
+    @media (max-width: 760px) {
+      .intro-inner {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .quiz-body,
+      .result-hero {
+        grid-template-columns: 1fr;
+      }
+
+      .intro-left,
+      .intro-right,
+      .intro-extra {
+        width: 100%;
+      }
+
+      .intro-left {
+        display: flex;
+        flex-direction: column;
+        padding: 32px 24px 24px;
+        border-right: none;
+        border-bottom: none;
+      }
+
+      .intro-right {
+        order: 2;
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      #media-zone-intro {
+        order: 2;
+        width: 100%;
+        min-width: 0;
+        min-height: 260px;
+        height: 260px;
+        overflow: hidden;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+      }
+
+      #intro-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .intro-extra {
+        order: 3;
+        padding: 0 24px 24px;
+        border-right: none;
+        border-bottom: none;
+      }
+
+      .intro-note {
+        order: 3;
+        margin-top: 20px;
+        margin-bottom: 20px;
+      }
+
+      #start-btn {
+        order: 4;
+      }
+
+      .quiz-left,
+      .result-visual-zone {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .quiz-left { padding: 28px; }
+      .result-copy { padding: 28px; }
+
+      .trait-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
+      body { padding: 14px 12px 40px; }
+
+      .option-grid,
+      .trait-grid,
+      .insight-grid,
+      .match-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .quiz-nav {
+        justify-content: stretch;
+      }
+
+      .quiz-nav .btn,
+      .result-actions .btn,
+      .intro-left .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-wrap">
+
+    <!-- intro -->
+    <div class="screen active" id="screen-intro">
+      <div class="card">
+        <div class="intro-inner">
+          <div class="intro-left">
+            <div class="badge">互動心理測驗</div>
+            <h1>你是哪一種<br>皮克敏？</h1>
+
+            <p class="intro-lead">
+              從日常習慣、壓力反應、在人群中的位置，<br>
+              測出你最像哪一隻皮克敏。<br>
+              依整體傾向加權判定，讓結果更像真正的你。
+            </p>
+          </div>
+
+          <div class="intro-right">
+            <div class="media-zone intro-media-full" id="media-zone-intro">
+              <video
+                id="intro-video"
+                class="full-bleed-video"
+                autoplay
+                muted
+                loop
+                playsinline
+                preload="auto"
+              >
+                <source src="video/intro.mp4" type="video/mp4">
+              </video>
+            </div>
+          </div>
+
+          <div class="intro-extra">
+            <div class="intro-note">
+              共 <strong>16 題</strong>，每題 4 個選項。<br>
+              題型偏向情境選擇，沒有標準答案，<br>
+              請選最接近你平常反應的那一項。
+            </div>
+
+            <button class="btn btn-primary" id="start-btn" type="button">開始測驗 →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- quiz -->
+    <div class="screen" id="screen-quiz">
+      <div class="card">
+        <div class="topbar">
+          <div class="topbar-left">
+            <button class="btn btn-ghost" id="back-btn" type="button" style="padding:9px 18px;font-size:13px;">← 返回封面</button>
+            <div class="q-counter" id="q-counter">第 1 題 / 共 16 題</div>
+            <div class="q-theme" id="q-theme">生活節奏</div>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <div class="quiz-body">
+          <div class="quiz-left">
+            <h2 id="q-title">假日終於到了，你最理想的安排是？</h2>
+            <p class="q-desc" id="q-desc">題目敘述</p>
+            <div class="quiz-hint" id="quiz-hint">請先選擇一個最接近你的答案。</div>
+          </div>
+
+          <div class="quiz-right">
+            <div class="quiz-media-zone media-frame-full" id="media-zone-question">
+              <img id="question-media" class="full-bleed-media" src="image/question-1.jpg" alt="">
+            </div>
+
+            <div class="options-panel">
+              <div class="option-grid" id="options-container"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="quiz-nav">
+          <button class="btn btn-ghost" id="prev-btn" type="button" disabled>← 上一題</button>
+          <button class="btn btn-primary" id="next-btn" type="button">下一題 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- result -->
+    <div class="screen" id="screen-result">
+      <div class="card">
+        <div class="result-hero">
+          <div class="result-visual-zone">
+            <div class="result-pikmin-wrap">
+              <div class="result-media-slot result-video-full" id="result-video-container">
+                <video
+                  id="result-video"
+                  class="full-bleed-media"
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  preload="auto"
+                ></video>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-copy">
+            <div class="badge">你的結果</div>
+            <div class="result-name" id="result-name">你是紅色皮克敏</div>
+            <div class="result-type" id="result-type">熱情冒險型</div>
+            <div class="result-tagline" id="result-tagline">先衝再說，世界要先被你撞開。</div>
+            <div class="result-desc" id="result-desc"></div>
+          </div>
+        </div>
+
+        <div class="result-sections">
+          <div class="section-title">你的特質地圖</div>
+          <div class="trait-grid">
+            <div class="trait-card">
+              <h4>你喜歡什麼</h4>
+              <div class="pills" id="likes-list"></div>
+            </div>
+            <div class="trait-card">
+              <h4>你討厭什麼</h4>
+              <div class="pills" id="dislikes-list"></div>
+            </div>
+            <div class="trait-card">
+              <h4>你的日常特徵</h4>
+              <div class="pills" id="daily-list"></div>
+            </div>
+          </div>
+
+          <div class="section-title">你與人相處的樣子</div>
+          <div class="insight-grid">
+            <div class="insight-card">
+              <h4>人際風格</h4>
+              <p id="social-style"></p>
+            </div>
+            <div class="insight-card">
+              <h4>戀愛／相處模式</h4>
+              <p id="relationship-style"></p>
+            </div>
+          </div>
+
+          <div class="section-title">皮克敏配對</div>
+          <div class="match-grid">
+            <div class="match-card">
+              <h4>最合拍的搭檔</h4>
+              <div class="match-image-slot" id="best-match-image">
+                <img id="best-match-img" src="" alt="">
+              </div>
+              <div class="match-name" id="best-match"></div>
+              <p id="best-match-reason"></p>
+            </div>
+            <div class="match-card">
+              <h4>最互補的夥伴</h4>
+              <div class="match-image-slot" id="complementary-match-image">
+                <img id="complementary-match-img" src="" alt="">
+              </div>
+              <div class="match-name" id="comp-match"></div>
+              <p id="comp-match-reason"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-actions single-action">
+          <button class="btn btn-primary" id="restart-btn" type="button">重新測驗</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const baseScores = () => ({
+        red: 0, yellow: 0, blue: 0, purple: 0,
+        white: 0, rock: 0, winged: 0, ice: 0
+      });
+
+      const tieOrder = ["white","ice","winged","rock","purple","blue","yellow","red"];
+
+      const profiles = {
+        red:{
+          name:"紅色皮克敏",subtitle:"熱情冒險型",color:"#e95a4f",
+          tagline:"先衝再說，世界要先被你撞開。",
+          description:[
+            "你是那種一有想法就想立刻開始的人。對你來說，最難受的不是失敗，而是還沒嘗試就停在原地。",
+            "比起反覆衡量，你更相信先行動、再修正。這種衝勁讓你常常成為開局的人。",
+            "你有很強的生命力和存在感。雖然偶爾因為太快、太直接而受傷，但你總能一次又一次重新起跑。"
+          ],
+          likes:["挑戰","速度感","冒險","新鮮感","直接行動"],
+          dislikes:["拖延","猶豫","停滯","過度保守","無聊流程"],
+          dailyTraits:["說走就走","容易熱血上頭","先做再想","怕日子一成不變"],
+          socialStyle:"你常是最先起頭的人，帶動節奏、推大家跨出第一步，很容易因你的熱度把周圍的人一起捲進行動裡。",
+          relationshipStyle:"喜歡一個人時通常不太會藏，情緒和行動都很直接。越能一起衝、一起玩的人，越容易讓你覺得有默契。",
+          bestMatch:"紫色皮克敏",
+          bestMatchReason:"你負責打開局面，他負責撐住局面，這是一種很有力量的搭配。",
+          complementaryMatch:"藍色皮克敏",
+          complementaryMatchReason:"藍色的冷靜判斷能幫你踩住煞車；你的行動力，也能讓藍色不只停留在理性裡。"
+        },
+        yellow:{
+          name:"黃色皮克敏",subtitle:"機靈靈活型",color:"#d4a843",
+          tagline:"你不是硬衝派，你是最會接住變化的人。",
+          description:[
+            "你反應快、腦筋轉得快，比起硬碰硬，你更擅長靈活應對，總能在事情快要卡住的時候找到另一條路。",
+            "你對新資訊的接受度高，不太會被變動嚇住。很多人需要時間適應的情況，你往往能很快理解節奏。",
+            "你帶有一種輕巧但實用的存在感，常常是團體裡最會接球、最能把尷尬化解掉的那一位。"
+          ],
+          likes:["有趣新資訊","變化","腦力反應","靈活處理","輕鬆氣氛"],
+          dislikes:["死板","卡關太久","被迫照單全收","一成不變","情緒太沉重"],
+          dailyTraits:["快速換方案","善於臨場反應","很會接話","容易讓場子變輕鬆"],
+          socialStyle:"你很像接球手，不一定搶著當中心，但常常是把對話接住、把節奏拉順的人。",
+          relationshipStyle:"你喜歡有來有往的互動感，對你來說，能一起笑、一起亂聊、一起快速理解彼此的人最有吸引力。",
+          bestMatch:"藍色皮克敏",
+          bestMatchReason:"你的機靈和藍色的穩定搭在一起，很像靈活執行與精準判斷的組合。",
+          complementaryMatch:"岩石皮克敏",
+          complementaryMatchReason:"岩石皮克敏的直線型能讓你回到重點；你也能幫他在僵住時找到更有效率的解法。"
+        },
+        blue:{
+          name:"藍色皮克敏",subtitle:"冷靜穩場型",color:"#4f8fe4",
+          tagline:"越混亂的時候，你越像那個不能少的人。",
+          description:[
+            "你在外表上顯得冷靜、穩定，但真正進到關鍵時刻時，大家往往會發現你很可靠。你不容易被情緒牽著走。",
+            "你習慣先看清局勢，再決定自己要不要出手。不太會為了迎合他人而做出沒必要的反應。",
+            "你身上有一種「不一定高調，但很不可或缺」的氣質。當別人慌了，你反而更能站穩。"
+          ],
+          likes:["明確判斷","穩定節奏","有效率的相處","安靜空間","有實力的人"],
+          dislikes:["失控場面","過度情緒化","無意義社交","低效率","亂下決定"],
+          dailyTraits:["常在關鍵時刻出手","不愛無效聊天","觀察後再表態","能替混亂收尾"],
+          socialStyle:"你在人際中不是最外放的，但只要進入真正重要的時刻，大家很自然會把視線轉向你。",
+          relationshipStyle:"你不太喜歡過度消耗型的相處方式，能夠尊重彼此節奏、在重要時刻互相信任的人比熱鬧更有吸引力。",
+          bestMatch:"黃色皮克敏",
+          bestMatchReason:"黃色皮克敏能替你補上機動性，讓你不會一直獨自扛完整個局面。",
+          complementaryMatch:"紅色皮克敏",
+          complementaryMatchReason:"紅色的行動力會替你把停在思考的東西推向現實，而你的冷靜能防止紅色衝太偏。"
+        },
+        purple:{
+          name:"紫色皮克敏",subtitle:"沉穩耐壓型",color:"#9a6dd8",
+          tagline:"你不一定最搶眼，但常常是最扛得住的人。",
+          description:[
+            "你給人的感覺通常不浮誇、不搶戲，但很有重量。很多別人嫌麻煩的事情，到了你這裡反而能被穩穩接住。",
+            "你有很好的耐心與抗壓性，能處理長時間、需要責任感的任務。你靠踏實與穩定讓人放心。",
+            "你的存在像一塊厚實的地基。當其他人衝得太快時，你很自然就成為把事情拉回地面的人。"
+          ],
+          likes:["踏實完成","被信任","有份量的責任","穩定節奏","可持續的努力"],
+          dislikes:["輕率","半途而廢","虛張聲勢","只說不做","太浮躁"],
+          dailyTraits:["做事很能撐","不怕麻煩細節","平常低調但很重要","很能扛責任"],
+          socialStyle:"你未必是最主動發話的人，但常常是最能讓人安心的那一個。在真正需要依靠時大家立刻想到你。",
+          relationshipStyle:"你重視踏實與長期感，不太吃表面熱度。能讓你放心、一起面對生活瑣碎的人比浪漫口號更重要。",
+          bestMatch:"紅色皮克敏",
+          bestMatchReason:"紅色給你推進與打開局面的力量，你給紅色穩定與承接，這種組合有速度也有厚度。",
+          complementaryMatch:"羽翅皮克敏",
+          complementaryMatchReason:"羽翅皮克敏能讓你在太沉太緊繃時找到更輕的處理方式；你能幫他把想法落地。"
+        },
+        white:{
+          name:"白色皮克敏",subtitle:"敏銳毒感型",color:"#d8d1bf",
+          tagline:"安靜不代表無害，你只是看得比別人更快。",
+          description:[
+            "你可能不是最張揚的人，但觀察力、敏銳度和情緒記憶都很強。很多別人沒注意到的細節，你早就收到了。",
+            "你有一種低調卻帶刺的能量。你不容易忘記那些讓你不舒服的人事物，必要時的反擊往往很準。",
+            "你在團體裡像是那種體積不大、存在感卻很特別的角色。你不是脆弱，只是沒把所有鋒利擺在表面。"
+          ],
+          likes:["細節","敏銳觀察","真實反應","保有界線","被看見真正價值"],
+          dislikes:["被低估","假裝沒事","虛偽","被冒犯後還得忍","過度侵入"],
+          dailyTraits:["會記住細節","安靜但有殺傷力","不太輕易忘記","很懂空氣變化"],
+          socialStyle:"你比較像潛伏型角色。默默觀察所有人，真正進到你的警戒線之後，界線感非常清楚。",
+          relationshipStyle:"你很在意真實感和安全感。比起表面熱絡，更在乎對方是否尊重你的界線、看見你冷靜下的細膩。",
+          bestMatch:"冰凍皮克敏",
+          bestMatchReason:"冰凍皮克敏能替你降溫，而你能讓他看見那些被輕忽的細節。",
+          complementaryMatch:"岩石皮克敏",
+          complementaryMatchReason:"岩石皮克敏的鈍感與誠實反而能讓你喘口氣；你能補足他忽略的精細之處。"
+        },
+        rock:{
+          name:"岩石皮克敏",subtitle:"真誠抗撞型",color:"#8a847d",
+          tagline:"你不一定最精緻，但超級扛撞，也很難真的被擊倒。",
+          description:[
+            "你給人的感覺可能有點直、甚至有點鈍，但你的優點也剛好在這裡：你不容易被打碎。",
+            "你不一定會把每件事想得很複雜，但在某些情境下，簡單直接反而成為很大的力量。你比別人更能從挫折裡彈回來。",
+            "你是真誠派的人，很少讓人懷疑你的真心。你的價值不是「看起來厲害」，而是「真的很能扛」。"
+          ],
+          likes:["單純直接","實際解法","撞開障礙","真誠的人","恢復元氣"],
+          dislikes:["過度複雜","拐彎抹角","一直鑽牛角尖","沒完沒了的內耗","裝腔作勢"],
+          dailyTraits:["跌倒很快就站起來","不一定最快但很耐打","誠實直接","在特定情境超有用"],
+          socialStyle:"你在人際裡不是精巧型，而是可靠型。說話不一定最漂亮，但很多人跟你相處不用猜，你的真誠會讓人很放鬆。",
+          relationshipStyle:"你重視舒服與真心，不喜歡太多試探。你用實際陪伴、直接反應和穩穩出現來證明自己。",
+          bestMatch:"冰凍皮克敏",
+          bestMatchReason:"冰凍皮克敏能幫你在衝撞之外多一點節奏感，而你的樂觀能接住冰凍忽冷忽熱的節拍。",
+          complementaryMatch:"白色皮克敏",
+          complementaryMatchReason:"白色能幫你注意到略過的細節；你則能讓白色從過度敏銳中鬆一口氣。"
+        },
+        winged:{
+          name:"羽翅皮克敏",subtitle:"自由飄移型",color:"#d98ab6",
+          tagline:"你不是懶，你只是討厭被困在不屬於你的節奏裡。",
+          description:[
+            "你有自己的速度，也有自己的路線。你不是什麼都不做，你只是很敏感地避開不必要的硬碰硬。",
+            "你不喜歡被逼，也不喜歡被固定在太死的框架裡。當別人用同一套節奏要求所有人時，你很容易先退一步。",
+            "你身上有一種輕盈的自由感，很擅長從別人走不通的地方繞過去，用看似鬆散的方式活出自己的路。"
+          ],
+          likes:["自由","自己的節奏","輕盈感","不被逼迫","繞路也沒關係"],
+          dislikes:["控制","高壓要求","被逼著衝","僵硬規則","過度干涉"],
+          dailyTraits:["容易先觀望","討厭硬碰硬","表面佛系其實有主意","自由狀態下效率更高"],
+          socialStyle:"你不是一直站在聚光燈下的人，但有自己的存在方式。不愛被綁住，卻很懂得在舒服的距離裡和人保持溫柔連結。",
+          relationshipStyle:"你需要能讓你呼吸的關係，不是處處要求即時回應的高濃度黏著。你喜歡輕盈但真誠的相處感。",
+          bestMatch:"冰凍皮克敏",
+          bestMatchReason:"你們都不喜歡過熱過躁的節奏，彼此理解退一步的需求，很像懂得留白的搭檔。",
+          complementaryMatch:"紫色皮克敏",
+          complementaryMatchReason:"紫色能在你太飄時提供結構與落地性；你能讓紫色也學會替自己留出更輕的空間。"
+        },
+        ice:{
+          name:"冰凍皮克敏",subtitle:"冷感脫線型",color:"#75cde8",
+          tagline:"你有時超冷靜，有時又突然亂衝，節奏全看你自己。",
+          description:[
+            "你身上有一種很特別的氣質：表面冷冷淡淡，像是不太容易被煽動，但偶爾又會突然做出很讓人意外的決定。",
+            "你很擅長替場面降溫。當別人越來越激動時，你可能一句話就能把現場拉回現實。",
+            "你的魅力在於不可預測。你不一定慢，也不永遠理性，但你總有自己的節拍，別人看不透你，反而覺得你有鮮明的存在感。"
+          ],
+          likes:["安靜空氣","冷幽默","自己決定節拍","降溫場面","不被情緒綁架"],
+          dislikes:["太吵","情緒高張","被逼表態","過度戲劇化","被誤解成沒感覺"],
+          dailyTraits:["表面冷淡其實有在看","有時超淡定有時突然衝","很會讓場面冷卻","幽默感偏冷門"],
+          socialStyle:"你不一定熱情外放，但你很有自己的氣場。能在局面過熱時把大家拉回來的人。",
+          relationshipStyle:"你不喜歡太戲劇化的關係，偏好有空間、有理解、有各自節奏的互動。你很在乎那種彼此懂得的默契。",
+          bestMatch:"羽翅皮克敏",
+          bestMatchReason:"你們都重視自在與情緒降溫，很像懂得留白與呼吸感的一組搭檔。",
+          complementaryMatch:"紅色皮克敏",
+          complementaryMatchReason:"紅色能替你補上果斷與熱度；你則能提醒紅色，不是每件事都需要燃燒到底。"
+        }
+      };
+
+      const questions = [
+        {
+          id:1, theme:"生活節奏",
+          title:"假日終於到了，你最理想的安排是？",
+          description:"忙了一整週，你終於有一整天空下來。這時候最能代表你真實狀態的，不是「應該怎麼過」，而是你打從心底最想怎麼過。你會怎麼安排這個假日？",
+          options:[
+            { text:"臨時決定一場說走就走的小旅行，去哪都可以，重點是新鮮感。", scores:{red:3,yellow:1,winged:1} },
+            { text:"和朋友約好行程，把時間安排得剛剛好，行程越完整越安心。", scores:{blue:2,purple:2,yellow:1} },
+            { text:"待在自己熟悉舒服的地方，不一定要出門，安靜也很好。", scores:{blue:2,ice:2,white:1} },
+            { text:"先睡到自然醒，剩下的事醒來再說，人生不用那麼趕。", scores:{winged:3,ice:1,rock:1} }
+          ]
+        },
+        {
+          id:2, theme:"人際互動",
+          title:"朋友突然傳訊息說：「現在出門，我們去吃宵夜！」",
+          description:"時間已經不早了，你原本也差不多準備結束今天。這時候有人丟來一個臨時邀約，你的第一個反應通常最接近哪一種？",
+          options:[
+            { text:"走啊，這種臨時行程最有趣，現在出發才有感。", scores:{red:3,yellow:1} },
+            { text:"等等，去哪？幾點回來？明天有事嗎？我先算一下。", scores:{blue:2,purple:2} },
+            { text:"我其實不太想出門，但如果是很重要的人，我會考慮。", scores:{ice:2,blue:1,white:1} },
+            { text:"我已經躺好了，除非店就開在我家樓下，不然真的很難。", scores:{winged:3,rock:1} }
+          ]
+        },
+        {
+          id:3, theme:"新鮮事態度",
+          title:"遇到一件你完全沒做過的新事情時，你通常會？",
+          description:"新任務、新環境、新工具，全部都不熟。這種「從零開始」的狀態，最容易看出一個人對未知的態度。你通常會怎麼進入？",
+          options:[
+            { text:"直接試，邊做邊學，反正總會慢慢找到路。", scores:{red:3,rock:1} },
+            { text:"先查資料，看別人怎麼做，確認安全和邏輯再開始。", scores:{blue:2,white:1,purple:2} },
+            { text:"先觀察別人的反應，再決定自己要不要加入。", scores:{white:2,ice:1,blue:1} },
+            { text:"希望這件事最好可以自己消失，或有人幫我處理。", scores:{winged:2,ice:1,rock:1} }
+          ]
+        },
+        {
+          id:4, theme:"壓力與失控", keyQuestion:true,
+          title:"你最不能忍受的是？",
+          description:"每個人都有自己的痛點。有些人怕無聊，有些人怕失控，有些人最受不了的是被情緒消耗。你真正最不能忍的，是哪一種情況？",
+          options:[
+            { text:"每天都一模一樣，毫無變化，像被困在重播裡。", scores:{red:2,yellow:2,winged:1} },
+            { text:"事情失控、沒有規劃、所有人都一副隨便的樣子。", scores:{blue:2,purple:3} },
+            { text:"被別人逼著快速做決定，連消化的時間都沒有。", scores:{white:2,ice:2,winged:1} },
+            { text:"情緒化又很吵的人，把整個氣氛攪得很亂。", scores:{ice:3,blue:1,white:1} }
+          ]
+        },
+        {
+          id:5, theme:"群體角色",
+          title:"你在朋友群裡通常是？",
+          description:"一群人聚在一起時，總會慢慢形成某種默契分工。你通常比較像哪一種角色？",
+          options:[
+            { text:"第一個提議「不然我們去做這個！」的人。", scores:{red:3,yellow:1} },
+            { text:"負責查資料、訂位、安排行程和提醒大家時間的人。", scores:{purple:2,blue:2,yellow:1} },
+            { text:"安靜參與，但真的有事時大家會自動來找我。", scores:{blue:2,purple:2} },
+            { text:"平常很少講話，但聚會照片裡總是會出現我。", scores:{winged:2,ice:1,rock:1} }
+          ]
+        },
+        {
+          id:6, theme:"面對挫折",
+          title:"如果排隊排了 40 分鐘，結果店家說賣完了，你會？",
+          description:"你已經投入時間和期待，結果最後卻撲空。這種很日常、卻又很煩的失落感，最能看出你的情緒處理方式。",
+          options:[
+            { text:"算了，直接找下一家，人生不能停在這裡。", scores:{red:2,yellow:2,rock:1} },
+            { text:"超級生氣，因為我明明早就規劃好了，現在整個被打亂。", scores:{purple:2,white:1,blue:1} },
+            { text:"有點失落，但會默默接受，然後自己消化掉。", scores:{blue:1,ice:2,white:1} },
+            { text:"很好，這就是宇宙叫我回家睡覺。", scores:{winged:2,rock:2} }
+          ]
+        },
+        {
+          id:7, theme:"他人印象",
+          title:"你最常被朋友說的一句話是？",
+          description:"別人看見的你，不一定和你心裡的自己完全一樣，但通常能反映你最常露出的那一面。",
+          options:[
+            { text:"「你真的很敢衝欸。」", scores:{red:3} },
+            { text:"「還好有你，不然一定出事。」", scores:{blue:2,purple:2} },
+            { text:"「你看起來都很淡定。」", scores:{ice:2,blue:1,white:1} },
+            { text:"「你是不是根本懶得理世界？」", scores:{winged:3,rock:1} }
+          ]
+        },
+        {
+          id:8, theme:"壓力反應", keyQuestion:true,
+          title:"當你壓力很大的時候，你會？",
+          description:"壓力來時，有些人會拼命動起來，有些人會先整理思緒，有些人則選擇把自己藏起來。你最接近哪一種？",
+          options:[
+            { text:"去做點什麼，讓自己忙起來，不然會更煩。", scores:{red:2,yellow:1,rock:1} },
+            { text:"把問題拆解，一件一件處理，至少先讓局面可控。", scores:{blue:2,purple:2} },
+            { text:"先自己消化，不太想讓別人知道，也不想被打擾。", scores:{white:2,ice:2} },
+            { text:"躺著、滑手機、假裝世界暫時不存在。", scores:{winged:3,ice:1} }
+          ]
+        },
+        {
+          id:9, theme:"風險與競爭",
+          title:"你對「競爭」的看法比較像？",
+          description:"有些人會因為競爭而更有勁，有些人則只想避開沒必要的消耗。面對比較、排名、輸贏時，你的真實態度是什麼？",
+          options:[
+            { text:"很好啊，有競爭才有刺激感，不然也太平了。", scores:{red:2,yellow:1} },
+            { text:"可以，但我要有勝算，至少不能毫無準備就上。", scores:{blue:2,purple:1,white:1} },
+            { text:"能避開就避開，太耗能了，不如留力氣做自己的事。", scores:{winged:2,ice:1,blue:1} },
+            { text:"為什麼不能大家和平共處，真的不想一直互撞。", scores:{rock:2,winged:1,ice:1} }
+          ]
+        },
+        {
+          id:10, theme:"個人核心氣質",
+          title:"你比較像哪種人？",
+          description:"把所有外在情境都拿掉，回到最根本的狀態，你會怎麼形容自己最常見的運作方式？",
+          options:[
+            { text:"熱情來得快，衝得也快，常常是先動的人。", scores:{red:3} },
+            { text:"穩穩前進，不喜歡出錯，做事有一套自己的節奏。", scores:{blue:2,purple:2} },
+            { text:"外表平靜，但其實很有自己的堅持和判斷。", scores:{white:2,blue:1,ice:1} },
+            { text:"表面佛系，但其實只是懶得解釋，也不想被逼。", scores:{winged:2,ice:2} }
+          ]
+        },
+        {
+          id:11, theme:"衝突處理",
+          title:"面對討厭的人，你通常會？",
+          description:"不是每個人都值得花力氣正面衝突。你比較常用哪一種方式保護自己？",
+          options:[
+            { text:"直接表現出來，不想演，也不想假裝沒事。", scores:{red:2,white:2} },
+            { text:"表面和平，但會默默保持距離，必要時很有界線。", scores:{blue:1,white:2,ice:1} },
+            { text:"能避就避，不想浪費能量在不值得的人身上。", scores:{winged:2,ice:1,blue:1} },
+            { text:"懶得討厭，連生氣都嫌累，反正之後就算了。", scores:{rock:2,winged:1,ice:1} }
+          ]
+        },
+        {
+          id:12, theme:"能力傾向",
+          title:"如果今天只能選一種超能力，你最想要？",
+          description:"超能力的選擇，往往反映一個人最在意的是突破、掌控、生存，還是自由。",
+          options:[
+            { text:"超強攻擊力，能正面把障礙打穿。", scores:{red:2,rock:1,purple:1} },
+            { text:"控制全場的能力，讓局面瞬間穩定下來。", scores:{blue:2,ice:2} },
+            { text:"在任何環境都能生存，不怕水、不怕毒、不怕意外。", scores:{white:2,blue:1,rock:1} },
+            { text:"可以飛，最好還不用一直走路。", scores:{winged:3,yellow:1} }
+          ]
+        },
+        {
+          id:13, theme:"情緒氣候",
+          title:"你最像哪種天氣？",
+          description:"如果把你的情緒節奏、存在感和能量感，全部變成一種天氣，它最接近哪一種畫面？",
+          options:[
+            { text:"午後雷陣雨，來得快、強度高，說來就來。", scores:{red:2,white:1} },
+            { text:"晴天，穩定而可靠，大家通常知道可以怎麼依靠。", scores:{blue:2,purple:2} },
+            { text:"陰天，看起來平靜，但其實裡面有很多細微情緒。", scores:{white:2,ice:2} },
+            { text:"微風，有最好，沒有也沒差，自在比較重要。", scores:{winged:2,yellow:1,rock:1} }
+          ]
+        },
+        {
+          id:14, theme:"做事風格",
+          title:"如果人生是一場遊戲，你比較像？",
+          description:"每個人玩遊戲的方式都不一樣。你的人生節奏比較接近哪一種玩家？",
+          options:[
+            { text:"主動衝主線任務的人，想到什麼就直接去做。", scores:{red:3,yellow:1} },
+            { text:"會把支線和資源全部整理好的人，穩穩把局開漂亮。", scores:{purple:2,blue:2} },
+            { text:"慢慢探索地圖的人，不急著破關，但很在意自己的感受。", scores:{ice:1,winged:2,white:1} },
+            { text:"一直卡在角色裝扮頁的人，因為我想先舒服再出發。", scores:{winged:2,yellow:1,rock:1} }
+          ]
+        },
+        {
+          id:15, theme:"陌生環境", keyQuestion:true,
+          title:"當你被丟進一個完全陌生的環境，你通常最先做的是？",
+          description:"新的地方、新的人、新的規則。這種時候最先啟動的，通常就是你的生存本能。",
+          options:[
+            { text:"先主動開路，邊走邊摸索，反正卡住再說。", scores:{red:2,yellow:1,rock:1} },
+            { text:"先快速判斷規則和局勢，找出最安全也最有效率的位置。", scores:{blue:2,white:1,purple:1} },
+            { text:"先觀察氣氛和人，再決定自己要露出多少。", scores:{white:2,ice:2} },
+            { text:"先找一個不會被打擾的角落，等自己習慣了再說。", scores:{winged:2,ice:1,purple:1} }
+          ]
+        },
+        {
+          id:16, theme:"決勝題", decisive:true,
+          title:"最後一題：你最接近哪種核心生存模式？",
+          description:"如果把你整個人的運作邏輯濃縮成一句話，你最像下面哪一種？這題會作為平手時的優先判定依據，請選最貼近本能的一個答案。",
+          options:[
+            { text:"先動起來再說。只要開始前進，我就能找到答案。", scores:{red:4,yellow:1} },
+            { text:"先看清楚再出手。判斷比衝動更重要。", scores:{blue:3,purple:2,white:1} },
+            { text:"先撐住再說。就算麻煩，也能慢慢扛過去。", scores:{purple:3,rock:2,ice:1} },
+            { text:"先保留自己的節奏。硬碰硬不一定是唯一的活法。", scores:{winged:3,ice:2,white:1} }
+          ]
+        }
+      ];
+
+      const state = {
+        qi: 0,
+        answers: Array(questions.length).fill(null),
+        result: null
+      };
+
+      const $ = id => document.getElementById(id);
+
+      const screens = {
+        intro: $("screen-intro"),
+        quiz: $("screen-quiz"),
+        result: $("screen-result")
+      };
+
+      function show(name) {
+        Object.values(screens).forEach(s => s.classList.remove("active"));
+        screens[name].classList.add("active");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      function playBgm() {
+        try {
+          const bgm = document.getElementById("bgm-main");
+          if (!bgm) return;
+          bgm.volume = 0.4;
+          bgm.play();
+        } catch (e) {
+          // 沒放音檔或播放失敗時不要報錯
+        }
+      }
+
+      function renderQ() {
+        const q = questions[state.qi];
+        const total = questions.length;
+        const selected = state.answers[state.qi];
+
+        $("q-counter").textContent = `第 ${state.qi + 1} 題 / 共 ${total} 題`;
+        $("q-theme").textContent = q.theme;
+        $("q-title").textContent = q.title;
+        $("q-desc").textContent = q.description;
+
+        const qMedia = document.getElementById("question-media");
+        if (qMedia) {
+          qMedia.src = `image/question-${q.id}.jpg`;
+          qMedia.alt = `題目 ${q.id} 情境圖`;
+        }
+
+        const container = $("options-container");
+        container.innerHTML = "";
+
+        q.options.forEach((opt, i) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "opt-btn" + (selected === i ? " selected" : "");
+          btn.innerHTML = `
+            <span class="opt-label">${String.fromCharCode(65 + i)}</span>
+            <span class="opt-text">${opt.text}</span>
+          `;
+          btn.addEventListener("click", () => {
+            state.answers[state.qi] = i;
+            renderQ();
+          });
+          container.appendChild(btn);
+        });
+
+        $("prev-btn").disabled = state.qi === 0;
+        $("next-btn").textContent = state.qi === total - 1 ? "看結果 →" : "下一題 →";
+        $("quiz-hint").textContent = selected === null
+          ? "請先選擇一個最接近你的答案。"
+          : "你可以重新點選其他選項修改答案。";
+
+        const answered = state.answers.filter(v => v !== null).length;
+        $("progress-fill").style.width = `${(answered / total) * 100}%`;
+      }
+
+      function calcScores() {
+        const scores = baseScores();
+
+        questions.forEach((q, qi) => {
+          const ai = state.answers[qi];
+          if (ai === null) return;
+
+          const picked = q.options[ai];
+          Object.entries(picked.scores).forEach(([k, v]) => {
+            scores[k] += v;
+            if (q.keyQuestion) scores[k] += Math.floor(v * 0.5);
+          });
+        });
+
+        return scores;
+      }
+
+      function decisiveScores() {
+        const scores = baseScores();
+        const di = questions.findIndex(q => q.decisive);
+        if (di < 0 || state.answers[di] === null) return scores;
+
+        Object.entries(questions[di].options[state.answers[di]].scores).forEach(([k, v]) => {
+          scores[k] += v;
+        });
+
+        return scores;
+      }
+
+      function keyScores() {
+        const scores = baseScores();
+        questions.forEach((q, qi) => {
+          if (!q.keyQuestion || state.answers[qi] === null) return;
+          Object.entries(q.options[state.answers[qi]].scores).forEach(([k, v]) => {
+            scores[k] += v;
+          });
+        });
+        return scores;
+      }
+
+      function determine() {
+        const totals = calcScores();
+        const max = Math.max(...Object.values(totals));
+        let candidates = Object.keys(totals).filter(k => totals[k] === max);
+
+        if (candidates.length === 1) return candidates[0];
+
+        const ds = decisiveScores();
+        const dmax = Math.max(...candidates.map(k => ds[k]));
+        candidates = candidates.filter(k => ds[k] === dmax);
+        if (candidates.length === 1) return candidates[0];
+
+        const ks = keyScores();
+        const kmax = Math.max(...candidates.map(k => ks[k]));
+        candidates = candidates.filter(k => ks[k] === kmax);
+        if (candidates.length === 1) return candidates[0];
+
+        return tieOrder.find(k => candidates.includes(k)) || candidates[0];
+      }
+
+      function fillPills(elId, items) {
+        const el = $(elId);
+        el.innerHTML = "";
+        items.forEach(text => {
+          const span = document.createElement("span");
+          span.className = "pill";
+          span.textContent = text;
+          el.appendChild(span);
+        });
+      }
+
+      function renderResult() {
+        const key = determine();
+        state.result = key;
+        const p = profiles[key];
+
+        document.documentElement.style.setProperty("--result-color", p.color);
+
+        $("result-name").textContent = `你是${p.name}`;
+        $("result-type").textContent = p.subtitle;
+        $("result-tagline").textContent = p.tagline;
+
+        const resultVideo = document.getElementById("result-video");
+        if (resultVideo) {
+          resultVideo.innerHTML = `<source src="video/result-${key}.mp4" type="video/mp4">`;
+          resultVideo.load();
+          resultVideo.play().catch(() => {});
+        }
+
+        const desc = $("result-desc");
+        desc.innerHTML = "";
+        p.description.forEach(text => {
+          const node = document.createElement("p");
+          node.textContent = text;
+          desc.appendChild(node);
+        });
+
+        fillPills("likes-list", p.likes);
+        fillPills("dislikes-list", p.dislikes);
+        fillPills("daily-list", p.dailyTraits);
+
+        $("social-style").textContent = p.socialStyle;
+        $("relationship-style").textContent = p.relationshipStyle;
+        $("best-match").textContent = p.bestMatch;
+        $("best-match-reason").textContent = p.bestMatchReason;
+        $("comp-match").textContent = p.complementaryMatch;
+        $("comp-match-reason").textContent = p.complementaryMatchReason;
+
+        const bestMatchImg = document.getElementById("best-match-img");
+        const compMatchImg = document.getElementById("complementary-match-img");
+
+        if (bestMatchImg) {
+          const bestKey = Object.keys(profiles).find(k => profiles[k].name === p.bestMatch);
+          if (bestKey) {
+            bestMatchImg.src = `image/match-${bestKey}.jpg`;
+            bestMatchImg.alt = p.bestMatch;
+          }
+        }
+
+        if (compMatchImg) {
+          const compKey = Object.keys(profiles).find(k => profiles[k].name === p.complementaryMatch);
+          if (compKey) {
+            compMatchImg.src = `image/match-${compKey}.jpg`;
+            compMatchImg.alt = p.complementaryMatch;
+          }
+        }
+
+        show("result");
+      }
+
+      $("start-btn").addEventListener("click", () => {
+        playBgm();
+        show("quiz");
+        renderQ();
+      });
+
+      $("back-btn").addEventListener("click", () => {
+        show("intro");
+      });
+
+      $("prev-btn").addEventListener("click", () => {
+        if (state.qi > 0) {
+          state.qi--;
+          renderQ();
+        }
+      });
+
+      $("next-btn").addEventListener("click", () => {
+        if (state.answers[state.qi] === null) {
+          $("quiz-hint").textContent = "還沒作答，先選一個最接近你的答案才能繼續。";
+          return;
+        }
+
+        if (state.qi === questions.length - 1) {
+          renderResult();
+          return;
+        }
+
+        state.qi++;
+        renderQ();
+      });
+
+      $("restart-btn").addEventListener("click", () => {
+        state.qi = 0;
+        state.answers = Array(questions.length).fill(null);
+        state.result = null;
+
+        $("progress-fill").style.width = "0%";
+
+        show("intro");
+      });
+    })();
+  </script>
+
+  <audio id="bgm-main" loop preload="auto"></audio>
+</body>
+</html>
